@@ -12,6 +12,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import i18n from '@/i18n';
 import { CodexQuotaBody } from '@/features/quota/providers/codex/CodexQuotaBody';
+import { QuotaResetLabel } from '@/features/quota/components/QuotaResetLabel';
 import { ClaudeQuotaBody } from '@/features/quota/providers/claude/ClaudeQuotaBody';
 import { KimiQuotaBody } from '@/features/quota/providers/kimi/KimiQuotaBody';
 import { QUOTA_CLASS_KEYS, bindQuotaClasses } from '@/features/quota/types';
@@ -257,4 +258,24 @@ describe('ClaudeQuotaBody', () => {
     expect(markup).toMatch(/2 hours/);
     expect(markup).toMatch(/4 days/);
   });
+});
+
+test('null reset labels say No reset pending in the shared label and Claude card', () => {
+  const html = renderToStaticMarkup(createElement(QuotaResetLabel, { display: null, classes }));
+  expect(html).toContain('No reset pending');
+  const quota: ClaudeQuotaState = {
+    status: 'success',
+    windows: [
+      {
+        id: 'five-hour',
+        label: '5-hour',
+        usedPercent: 0,
+        resetLabel: '-',
+        resetAtMs: null,
+      },
+    ],
+  };
+  expect(renderToStaticMarkup(createElement(ClaudeQuotaBody, { quota, classes }))).toContain(
+    'No reset pending'
+  );
 });

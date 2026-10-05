@@ -164,10 +164,14 @@ export function QuotaLedger({
                                 percent={window?.remaining ?? null}
                                 classes={meterClasses}
                               />
-                              {reset && (
+                              {reset ? (
                                 <div className={styles.reset}>
                                   {reset.relative && `${reset.relative} · `}
                                   {reset.absolute}
+                                </div>
+                              ) : (
+                                <div className={styles.reset}>
+                                  {t('quota_management.no_reset_pending')}
                                 </div>
                               )}
                             </td>

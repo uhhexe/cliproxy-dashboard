@@ -75,6 +75,8 @@ describe('formatInstantShort', () => {
   test('matches the shape the baked reset labels already use', () => {
     const iso = new Date(2026, 7, 13, 14, 30).toISOString();
     expect(formatInstantShort(new Date(iso).getTime())).toBe(formatQuotaResetTime(iso));
+    expect(formatInstantShort(new Date(iso).getTime())).toBe('08/13, 14:30');
+    expect(formatInstantShort(new Date(2026, 0, 2, 0, 5).getTime())).toBe('01/02, 00:05');
   });
 
   test('degrades to a dash rather than "Invalid Date"', () => {
@@ -122,6 +124,8 @@ describe('buildResetDisplay', () => {
 
   test('rejects a non-finite instant', () => {
     expect(buildResetDisplay(undefined, Number.NaN, NOW, 'en')).toBeNull();
-    expect(buildResetDisplay('08-13 14:30', Number.POSITIVE_INFINITY, NOW, 'en')?.relative).toBeNull();
+    expect(
+      buildResetDisplay('08-13 14:30', Number.POSITIVE_INFINITY, NOW, 'en')?.relative
+    ).toBeNull();
   });
 });

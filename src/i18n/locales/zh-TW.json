@@ -1563,6 +1563,7 @@
     }
   },
   "quota_management": {
+    "no_reset_pending": "暫無待重設",
     "view_ledger": "清單",
     "view_cards": "卡片",
     "view_label": "檢視",

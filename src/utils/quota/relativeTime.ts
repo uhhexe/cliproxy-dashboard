@@ -74,19 +74,16 @@ export function formatRelativeInstant(targetMs: number, nowMs: number, locale?: 
 }
 
 /**
- * Absolute instant in the shape every quota row already uses (`MM-DD HH:mm`,
+ * Absolute instant in the shape every quota row already uses (`MM/DD, HH:mm`,
  * browser-local, 24-hour). Kept in one place so the reset labels baked at fetch
  * time and the ones formatted at render time can never drift apart.
  */
 export function formatInstantShort(ms: number): string {
   if (!Number.isFinite(ms)) return '-';
-  return new Date(ms).toLocaleString(undefined, {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
+  const date = new Date(ms);
+  if (!Number.isFinite(date.getTime())) return '-';
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}, ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export interface ResetDisplay {

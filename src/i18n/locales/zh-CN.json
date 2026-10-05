@@ -1537,6 +1537,7 @@
     }
   },
   "quota_management": {
+    "no_reset_pending": "暂无待重置",
     "view_ledger": "列表",
     "view_cards": "卡片",
     "view_label": "视图",

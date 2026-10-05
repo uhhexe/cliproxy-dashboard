@@ -1539,6 +1539,7 @@
     }
   },
   "quota_management": {
+    "no_reset_pending": "No reset pending",
     "view_ledger": "Ledger",
     "view_cards": "Cards",
     "view_label": "View",

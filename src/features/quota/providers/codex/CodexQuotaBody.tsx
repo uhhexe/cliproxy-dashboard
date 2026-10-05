@@ -197,9 +197,7 @@ export function CodexQuotaBody({ quota, classes }: QuotaBodyProps<CodexQuotaStat
                 <span className={classes.quotaModel}>{windowLabel}</span>
                 <div className={classes.quotaMeta}>
                   <span className={classes.quotaPercent}>{percentLabel}</span>
-                  {resetDisplay && (
-                    <QuotaResetLabel display={resetDisplay} classes={classes} soon={soon} />
-                  )}
+                  <QuotaResetLabel display={resetDisplay} classes={classes} soon={soon} />
                 </div>
               </div>
               <QuotaMeter percent={remaining} classes={classes} index={index} />

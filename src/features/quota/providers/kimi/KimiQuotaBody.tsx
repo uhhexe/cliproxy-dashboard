@@ -59,9 +59,7 @@ export function KimiQuotaBody({ quota, classes }: QuotaBodyProps<KimiQuotaState>
               <span className={classes.quotaModel}>{rowLabel}</span>
               <div className={classes.quotaMeta}>
                 <span className={classes.quotaPercent}>{percentLabel}</span>
-                {resetDisplay && (
-                  <QuotaResetLabel display={resetDisplay} classes={classes} soon={soon} />
-                )}
+                <QuotaResetLabel display={resetDisplay} classes={classes} soon={soon} />
               </div>
             </div>
             <QuotaMeter percent={remaining} classes={classes} index={index} />

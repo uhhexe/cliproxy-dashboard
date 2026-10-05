@@ -1542,6 +1542,7 @@
     }
   },
   "quota_management": {
+    "no_reset_pending": "Сброс не ожидается",
     "view_ledger": "Таблица",
     "view_cards": "Карточки",
     "view_label": "Вид",
