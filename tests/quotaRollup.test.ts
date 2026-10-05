@@ -46,3 +46,67 @@ test('unknown credentials count toward capacity without inventing usage', () => 
   expect(rollup.segments[0].level).toBe('unknown');
   expect(rollup.soonestResetMs).toBeNull();
 });
+
+function claudeFixture(windows: ClaudeQuotaState['windows'][]) {
+  const entries: QuotaFileEntry[] = windows.map((_, index) => ({
+    type: 'claude',
+    file: { name: `claude-${index}.json` },
+  }));
+  const states: Record<string, ClaudeQuotaState> = Object.fromEntries(
+    windows.map((rows, index) => [entries[index].file.name, { status: 'success', windows: rows }])
+  );
+  return buildProviderRollups(entries, { claude: states })[0];
+}
+const claudeWindow = (id: string, usedPercent: number | null, resetAtMs: number) => ({
+  id,
+  usedPercent,
+  resetAtMs,
+  label: '',
+  resetLabel: '',
+});
+
+test('mixed Claude credentials prefer Fable and fall back individually to seven-day', () => {
+  const rollup = claudeFixture([
+    [claudeWindow('seven-day', 10, 500), claudeWindow('seven-day-fable', 42, 3000)],
+    [claudeWindow('seven-day', 25, 1000)],
+    [],
+  ]);
+  expect(rollup.labelKey).toBe('claude_quota.seven_day_fable');
+  expect(formatRollupTotal(rollup)).toBe('133% of 300%');
+  expect(rollup.segments.map(({ remaining, level }) => ({ remaining, level }))).toEqual([
+    { remaining: 58, level: 'amber' },
+    { remaining: 75, level: 'green' },
+    { remaining: null, level: 'unknown' },
+  ]);
+  expect(rollup.soonestResetMs).toBe(1000);
+  expect(rollup.secondary).toEqual({ labelKey: 'claude_quota.seven_day', remaining: 165 });
+});
+
+test('Claude without any Fable rows uses the seven-day label and omits the secondary line', () => {
+  const rollup = claudeFixture([
+    [claudeWindow('seven-day', 20, 3000)],
+    [claudeWindow('seven-day', 100, 2000)],
+  ]);
+  expect(rollup.labelKey).toBe('claude_quota.seven_day');
+  expect(formatRollupTotal(rollup)).toBe('80% of 200%');
+  expect(rollup.segments.map((segment) => segment.remaining)).toEqual([80, 0]);
+  expect(rollup.soonestResetMs).toBe(2000);
+  expect(rollup).not.toHaveProperty('secondary');
+});
+
+test('an existing Fable row with unknown usage still takes precedence', () => {
+  const rollup = claudeFixture([
+    [claudeWindow('seven-day-fable', null, 3000), claudeWindow('seven-day', 20, 1000)],
+  ]);
+  expect(rollup.labelKey).toBe('claude_quota.seven_day_fable');
+  expect(rollup.remaining).toBeNull();
+  expect(rollup.soonestResetMs).toBe(3000);
+  expect(rollup.secondary?.remaining).toBe(80);
+});
+
+test('Claude with neither window stays unknown and omits the secondary line', () => {
+  const rollup = claudeFixture([[]]);
+  expect(rollup.labelKey).toBe('claude_quota.seven_day');
+  expect(formatRollupTotal(rollup)).toBe('-- of 100%');
+  expect(rollup).not.toHaveProperty('secondary');
+});
