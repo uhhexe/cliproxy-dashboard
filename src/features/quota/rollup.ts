@@ -127,13 +127,21 @@ export function buildProviderRollups(
     const windows = group.map((entry) =>
       quotaWindowSummaries(type, quotaByType[type]?.[getQuotaCacheKey(entry.file)])
     );
+    const hasFable =
+      type === 'claude' && windows.some((rows) => rows.some((row) => row.id === 'seven-day-fable'));
     const headlines = windows.map((rows) => {
       if (type === 'antigravity')
         return rows
           .filter((row) => row.remaining !== null)
           .sort((a, b) => a.remaining! - b.remaining!)[0];
       if (type === 'kimi') return rows.find((row) => row.labelKey === 'kimi_quota.weekly_limit');
-      return rows.find((row) => row.id === (type === 'claude' ? 'seven-day-fable' : 'weekly'));
+      if (type === 'claude') {
+        return (
+          rows.find((row) => row.id === 'seven-day-fable') ??
+          rows.find((row) => row.id === 'seven-day')
+        );
+      }
+      return rows.find((row) => row.id === 'weekly');
     });
     const resets = headlines.map((row) => row?.resetAtMs).filter((at): at is number => at != null);
     const segments: QuotaSegment[] = group.map((entry, i) => {
@@ -156,7 +164,9 @@ export function buildProviderRollups(
         type,
         labelKey:
           type === 'claude'
-            ? 'claude_quota.seven_day_fable'
+            ? hasFable
+              ? 'claude_quota.seven_day_fable'
+              : 'claude_quota.seven_day'
             : type === 'antigravity'
               ? 'quota_management.lowest_group'
               : 'quota_management.weekly_limit',
@@ -164,7 +174,7 @@ export function buildProviderRollups(
         capacity: group.length * 100,
         segments,
         soonestResetMs: resets.length ? Math.min(...resets) : null,
-        ...(type === 'claude'
+        ...(hasFable
           ? {
               secondary: {
                 labelKey: 'claude_quota.seven_day',
