@@ -385,6 +385,7 @@ export function QuotaPage() {
           </div>
           <div className={styles.sort}>
             <Select
+              fullWidth={false}
               value={viewMode}
               options={QUOTA_VIEW_MODES.map((mode) => ({
                 value: mode,
@@ -398,6 +399,7 @@ export function QuotaPage() {
               size="sm"
             />
             <Select
+              fullWidth={false}
               value={sortMode}
               options={sortOptions}
               onChange={handleSortModeChange}
