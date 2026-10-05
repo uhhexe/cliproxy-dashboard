@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import {
   QUOTA_SORT_MODES,
   QUOTA_TAB_ORDER,
@@ -7,6 +8,7 @@ import {
 
 /** 额度页 UI 偏好：会话级持久化（sessionStorage），跨会话不携带。 */
 export type QuotaUiState = {
+  showEmails?: boolean;
   tab?: QuotaTabId;
   sortMode?: QuotaSortMode;
 };
@@ -30,6 +32,7 @@ export const readQuotaUiState = (): QuotaUiState | null => {
     const parsed = JSON.parse(raw) as QuotaUiState;
     if (!parsed || typeof parsed !== 'object') return null;
     return {
+      ...(typeof parsed.showEmails === 'boolean' ? { showEmails: parsed.showEmails } : {}),
       tab: isQuotaTabId(parsed.tab) ? parsed.tab : undefined,
       sortMode: isQuotaSortMode(parsed.sortMode) ? parsed.sortMode : undefined,
     };
@@ -51,6 +54,17 @@ export const writeQuotaUiState = (state: QuotaUiState) => {
     const next = { ...readQuotaUiState(), ...state };
     window.sessionStorage.setItem(QUOTA_UI_STATE_KEY, JSON.stringify(next));
   } catch {
-    // ignore
+    // Storage can be unavailable in private browsing.
   }
+  listeners.forEach((listener) => listener());
 };
+
+const listeners = new Set<() => void>();
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+const getShowEmails = () => readQuotaUiState()?.showEmails ?? false;
+export const useQuotaShowEmails = () => useSyncExternalStore(subscribe, getShowEmails, () => false);

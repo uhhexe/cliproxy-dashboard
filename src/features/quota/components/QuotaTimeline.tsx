@@ -16,7 +16,7 @@ import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeInstant, TYPE_COLORS } from '@/utils/quota';
-import { getQuotaCacheKey, getQuotaDisplayName } from '@/utils/quota/identity';
+import { getQuotaCacheKey, getQuotaDisplayName, maskCredentialName } from '@/utils/quota/identity';
 import { useNow } from '@/hooks/useNow';
 import type { ResolvedTheme, ThemeColors } from '@/types';
 import {
@@ -30,6 +30,7 @@ import {
 import type { TimelineLane, TimelineMode } from '../quotaTimelineModel';
 import type { QuotaFileEntry } from '../logic';
 import type { QuotaCardState } from '../providers';
+import { useQuotaShowEmails } from '../uiState';
 import styles from './QuotaTimeline.module.scss';
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -72,6 +73,7 @@ export function QuotaTimeline({
   initialOffset = 0,
 }: QuotaTimelineProps) {
   const { t } = useTranslation();
+  const showEmails = useQuotaShowEmails();
   const [mode, setMode] = useState<TimelineMode>(initialMode);
   const [offset, setOffset] = useState(initialOffset);
 
@@ -93,14 +95,16 @@ export function QuotaTimeline({
     () =>
       entries.map((entry) => ({
         name: getQuotaCacheKey(entry.file),
-        displayName:
+        displayName: maskCredentialName(
           entry.type === 'devin'
             ? getQuotaDisplayName(entry.file)
             : displayNameFor(entry.file.name),
+          showEmails
+        ),
         provider: entry.type,
         quota: quotaFor(entry),
       })),
-    [entries, quotaFor, displayNameFor]
+    [entries, quotaFor, displayNameFor, showEmails]
   );
 
   // Keep the timeline hidden until at least one loaded credential exposes a
@@ -357,8 +361,7 @@ function Lane({ lane, span, now, mode, cells, nowPercent, resolvedTheme }: LaneP
         <div className={styles.laneLimits}>
           {lane.limits.map((limit) => (
             <span key={limit.label} className={styles.laneLimit}>
-              {lane.provider === 'meta' ? t(limit.label) : limit.label}{' '}
-              <b>{limit.remaining}%</b>
+              {lane.provider === 'meta' ? t(limit.label) : limit.label} <b>{limit.remaining}%</b>
             </span>
           ))}
         </div>

@@ -1542,6 +1542,7 @@
     }
   },
   "quota_management": {
+    "show_emails": "Показать почту",
     "search_label": "Поиск аккаунтов",
     "search_placeholder": "Поиск по имени файла или электронной почте",
     "search_empty_title": "Аккаунты не найдены",
