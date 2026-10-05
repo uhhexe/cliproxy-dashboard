@@ -214,6 +214,7 @@
     "ws_auth_enable": "啟用 /ws/* 驗證",
     "routing_strategy_round_robin": "round-robin（輪詢）",
     "routing_strategy_weighted_round_robin": "weighted-round-robin（加權輪詢）",
+    "routing_strategy_reset_soonest": "最早重設優先",
     "routing_strategy_fill_first": "fill-first（優先填充）"
   },
   "auth_files": {
@@ -1410,6 +1411,7 @@
           "routing_strategy_hint": "選擇憑證選擇策略",
           "strategy_round_robin": "輪詢（Round Robin）",
           "strategy_weighted_round_robin": "加權輪詢（Weighted Round Robin）",
+          "strategy_reset_soonest": "最早重設優先",
           "strategy_fill_first": "填充優先（Fill First）",
           "session_affinity_ttl": "會話黏性 TTL",
           "force_model_prefix": "強制模型前綴",

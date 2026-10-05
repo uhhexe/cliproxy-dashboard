@@ -214,6 +214,7 @@
     "ws_auth_enable": "Require auth for /ws/*",
     "routing_strategy_round_robin": "round-robin (cycle)",
     "routing_strategy_weighted_round_robin": "weighted-round-robin (weighted cycle)",
+    "routing_strategy_reset_soonest": "Reset soonest first",
     "routing_strategy_fill_first": "fill-first (prioritize)"
   },
   "auth_files": {
@@ -1386,6 +1387,7 @@
           "routing_strategy_hint": "Select credential selection strategy",
           "strategy_round_robin": "Round Robin",
           "strategy_weighted_round_robin": "Weighted Round Robin",
+          "strategy_reset_soonest": "Reset soonest first",
           "strategy_fill_first": "Fill First",
           "session_affinity_ttl": "Session Affinity TTL",
           "force_model_prefix": "Force Model Prefix",
