@@ -2,7 +2,7 @@
  * 额度查询页：提供商 tabs + 统一卡网格。
  *
  * 保留的行为契约（重设计不改）：
- * - 现有提供商保持点击加载；Devin 首次可见时主动查询一次，不轮询；
+ * - 所有提供商自动查询，分批加载并保留会话隔离；
  * - cacheGeneration 会话隔离 + request-id 去重（见 useQuotaBatchLoader）；
  * - 文件列表变化后按 provider 剪枝额度缓存（已删文件不残留）；
  * - useHeaderRefresh 单槽位：本页唯一注册者，全局刷新 = 重取文件列表。
@@ -47,7 +47,7 @@ import {
 import { nextRecoveryMs } from './resetSchedule';
 import { QUOTA_ADAPTERS, getQuotaSetter, type QuotaCardState } from './providers';
 import type { QuotaProviderType } from './providers/types';
-import { useDevinQuotaAutoLoad } from './providers/devin/useDevinQuotaAutoLoad';
+import { useQuotaAutoLoadAll } from './useQuotaAutoLoadAll';
 import { useQuotaActions } from './hooks/useQuotaActions';
 import { useQuotaBatchLoader } from './hooks/useQuotaBatchLoader';
 import { readQuotaUiState, writeQuotaUiState } from './uiState';
@@ -242,10 +242,16 @@ export function QuotaPage() {
   const { batchLoading, loadQuota } = useQuotaBatchLoader();
   const { resettingQuotaName, refreshQuota, resetQuota } = useQuotaActions(disableControls);
 
+  const reloadAllQuota = useQuotaAutoLoadAll(
+    entries,
+    disableControls || loading || Boolean(error) || filesGeneration !== sessionGeneration,
+    loadQuota
+  );
+
   const pendingRefreshRef = useRef<number | null>(null);
   const prevLoadingRef = useRef(loading);
 
-  // 刷新全部：先重取文件列表，待其落定（loading 下降沿）再批量拉当前页额度
+  // 刷新全部：先重取文件列表，待其落定（loading 下降沿）再批量拉全部额度
   const handleRefreshAll = useCallback(() => {
     if (disableControls) return;
     pendingRefreshRef.current = sessionGeneration;
@@ -274,19 +280,17 @@ export function QuotaPage() {
         disableControls
       )
     ) {
-      void loadQuota(pageItems);
+      void reloadAllQuota(entries);
     }
-  }, [disableControls, error, filesGeneration, loading, loadQuota, pageItems, sessionGeneration]);
-
-  useDevinQuotaAutoLoad(
-    pageItems,
-    disableControls ||
-      loading ||
-      batchLoading ||
-      Boolean(error) ||
-      filesGeneration !== sessionGeneration,
-    loadQuota
-  );
+  }, [
+    disableControls,
+    error,
+    filesGeneration,
+    loading,
+    reloadAllQuota,
+    entries,
+    sessionGeneration,
+  ]);
 
   const canUseActions = !disableControls && !loading && filesGeneration === sessionGeneration;
 
