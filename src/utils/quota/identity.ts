@@ -32,11 +32,13 @@ export function getQuotaCacheFileName(key: string): string {
 export function maskCredentialName(name: string, showEmails = false): string {
   if (showEmails) return name;
   return name.replace(/([^\s@]+)@([^\s@]+)/g, (_match, local: string, host: string) => {
-    const prefixEnd = local.lastIndexOf('-') + 1;
-    const prefix = local.slice(0, prefixEnd);
-    const first = local.slice(prefixEnd, prefixEnd + 1);
-    const dot = host.indexOf('.');
-    const suffix = dot < 0 ? '' : host.slice(dot);
-    return `${prefix}${first}•••@${host.charAt(0)}•••${suffix}`;
+    const prefix =
+      local.match(/^(?:claude|codex|antigravity|kimi|xai|devin|meta|gemini)-/i)?.[0] ?? '';
+    const first = local.slice(prefix.length, prefix.length + 1);
+    const extension = host.endsWith('.json') ? '.json' : '';
+    const domain = extension ? host.slice(0, -extension.length) : host;
+    const dot = domain.lastIndexOf('.');
+    const suffix = dot < 0 ? '' : domain.slice(dot);
+    return `${prefix}${first}•••@${domain.charAt(0)}•••${suffix}${extension}`;
   });
 }

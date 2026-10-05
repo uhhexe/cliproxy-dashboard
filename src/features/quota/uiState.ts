@@ -17,6 +17,7 @@ export type QuotaUiState = {
 };
 
 const QUOTA_UI_STATE_KEY = 'quotaPage.uiState';
+let unavailableStorageState: QuotaUiState | null = null;
 
 const QUOTA_TAB_ID_SET = new Set<string>(['all', ...QUOTA_TAB_ORDER]);
 const QUOTA_SORT_MODE_SET = new Set<string>(QUOTA_SORT_MODES);
@@ -43,7 +44,7 @@ export const readQuotaUiState = (): QuotaUiState | null => {
       sortMode: isQuotaSortMode(parsed.sortMode) ? parsed.sortMode : undefined,
     };
   } catch {
-    return null;
+    return unavailableStorageState;
   }
 };
 
@@ -60,7 +61,8 @@ export const writeQuotaUiState = (state: QuotaUiState) => {
     const next = { ...readQuotaUiState(), ...state };
     window.sessionStorage.setItem(QUOTA_UI_STATE_KEY, JSON.stringify(next));
   } catch {
-    // Storage can be unavailable in private browsing.
+    // Keep controls usable even when browser storage is unavailable.
+    unavailableStorageState = { ...readQuotaUiState(), ...state };
   }
   listeners.forEach((listener) => listener());
 };
