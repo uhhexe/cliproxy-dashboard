@@ -1537,6 +1537,10 @@
     }
   },
   "quota_management": {
+    "view_ledger": "列表",
+    "view_cards": "卡片",
+    "view_label": "视图",
+    "credential": "凭证",
     "rollup_total": "{{remaining}} / {{capacity}}%",
     "weekly_limit": "每周限额",
     "lowest_group": "最低模型组",

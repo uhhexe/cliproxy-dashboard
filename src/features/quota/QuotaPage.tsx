@@ -27,12 +27,15 @@ import { QuotaHeader } from './components/QuotaHeader';
 import { QuotaRollupCard } from './components/QuotaRollupCard';
 import rollupStyles from './components/QuotaRollupCard.module.scss';
 import { buildProviderRollups } from './rollup';
+import { QuotaResults } from './components/QuotaLedger';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
 import {
   CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
   QUOTA_SORT_MODES,
+  QUOTA_VIEW_MODES,
+  type QuotaViewMode,
   QUOTA_TAB_ORDER,
   type QuotaSortMode,
   type QuotaTabId,
@@ -76,6 +79,9 @@ export function QuotaPage() {
   const [tab, setTab] = useState<QuotaTabId>(() => readQuotaUiState()?.tab ?? 'all');
   const [sortMode, setSortMode] = useState<QuotaSortMode>(
     () => readQuotaUiState()?.sortMode ?? 'default'
+  );
+  const [viewMode, setViewMode] = useState<QuotaViewMode>(
+    () => readQuotaUiState()?.viewMode ?? 'ledger'
   );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -379,6 +385,19 @@ export function QuotaPage() {
           </div>
           <div className={styles.sort}>
             <Select
+              value={viewMode}
+              options={QUOTA_VIEW_MODES.map((mode) => ({
+                value: mode,
+                label: t(`quota_management.view_${mode}`),
+              }))}
+              onChange={(next) => {
+                setViewMode(next as QuotaViewMode);
+                writeQuotaUiState({ viewMode: next as QuotaViewMode });
+              }}
+              ariaLabel={t('quota_management.view_label')}
+              size="sm"
+            />
+            <Select
               value={sortMode}
               options={sortOptions}
               onChange={handleSortModeChange}
@@ -429,7 +448,14 @@ export function QuotaPage() {
             }
           />
         ) : (
-          <div className={styles.grid}>
+          <QuotaResults
+            viewMode={viewMode}
+            entries={pageItems}
+            quotaFor={getQuota}
+            cardsClassName={styles.grid}
+            canRefresh={canUseActions}
+            onRefresh={(entry) => void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
+          >
             {pageItems.map((entry, index) => (
               <QuotaCard
                 key={`${entry.type}:${getQuotaCacheKey(entry.file)}`}
@@ -443,7 +469,7 @@ export function QuotaPage() {
                 onReset={() => resetQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
               />
             ))}
-          </div>
+          </QuotaResults>
         )}
 
         {!loading && filteredEntries.length > QUOTA_PAGE_SIZE && (

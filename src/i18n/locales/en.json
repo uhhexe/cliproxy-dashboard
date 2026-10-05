@@ -1539,6 +1539,10 @@
     }
   },
   "quota_management": {
+    "view_ledger": "Ledger",
+    "view_cards": "Cards",
+    "view_label": "View",
+    "credential": "Credential",
     "rollup_total": "{{remaining}} of {{capacity}}%",
     "weekly_limit": "Weekly limit",
     "lowest_group": "Lowest model group",

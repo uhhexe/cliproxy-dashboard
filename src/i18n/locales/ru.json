@@ -1542,6 +1542,10 @@
     }
   },
   "quota_management": {
+    "view_ledger": "Таблица",
+    "view_cards": "Карточки",
+    "view_label": "Вид",
+    "credential": "Учётные данные",
     "rollup_total": "{{remaining}} из {{capacity}}%",
     "weekly_limit": "Недельный лимит",
     "lowest_group": "Минимальная группа моделей",

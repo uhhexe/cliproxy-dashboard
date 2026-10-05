@@ -1,0 +1,79 @@
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.provider {
+  min-width: 0;
+  h2 {
+    font-size: 18px;
+    margin: 0 0 12px;
+  }
+}
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  &:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  th,
+  td {
+    padding: 14px 16px;
+    text-align: left;
+    min-width: 180px;
+    vertical-align: top;
+  }
+  thead {
+    background: var(--bg-secondary);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  tbody tr + tr {
+    border-top: 1px solid var(--border-color);
+  }
+  tbody th {
+    width: 30%;
+    font-weight: normal;
+    max-width: 320px;
+  }
+}
+.name {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.plan,
+.status {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.percent {
+  text-align: right;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.reset {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  margin-top: 8px;
+}
+.refresh {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+}

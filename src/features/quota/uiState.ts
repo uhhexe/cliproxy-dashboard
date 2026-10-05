@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import {
   QUOTA_SORT_MODES,
+  QUOTA_VIEW_MODES,
+  type QuotaViewMode,
   QUOTA_TAB_ORDER,
   type QuotaSortMode,
   type QuotaTabId,
@@ -9,6 +11,7 @@ import {
 /** 额度页 UI 偏好：会话级持久化（sessionStorage），跨会话不携带。 */
 export type QuotaUiState = {
   showEmails?: boolean;
+  viewMode?: QuotaViewMode;
   tab?: QuotaTabId;
   sortMode?: QuotaSortMode;
 };
@@ -33,6 +36,9 @@ export const readQuotaUiState = (): QuotaUiState | null => {
     if (!parsed || typeof parsed !== 'object') return null;
     return {
       ...(typeof parsed.showEmails === 'boolean' ? { showEmails: parsed.showEmails } : {}),
+      ...(QUOTA_VIEW_MODES.includes(parsed.viewMode as QuotaViewMode)
+        ? { viewMode: parsed.viewMode }
+        : {}),
       tab: isQuotaTabId(parsed.tab) ? parsed.tab : undefined,
       sortMode: isQuotaSortMode(parsed.sortMode) ? parsed.sortMode : undefined,
     };

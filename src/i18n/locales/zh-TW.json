@@ -1563,6 +1563,10 @@
     }
   },
   "quota_management": {
+    "view_ledger": "清單",
+    "view_cards": "卡片",
+    "view_label": "檢視",
+    "credential": "憑證",
     "rollup_total": "{{remaining}} / {{capacity}}%",
     "weekly_limit": "每週限額",
     "lowest_group": "最低模型群組",
