@@ -1,0 +1,55 @@
+.strip {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-block: 4px 12px;
+}
+.card {
+  flex: 1 0 280px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  font-variant-numeric: tabular-nums;
+  h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+  }
+}
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.segments {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+.segment {
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--border-color);
+  > span {
+    display: block;
+    height: 100%;
+  }
+  &[data-level='green'] > span {
+    background: var(--viz-success);
+  }
+  &[data-level='amber'] > span {
+    background: var(--quota-medium-color);
+  }
+  &[data-level='red'] > span {
+    background: var(--viz-failure);
+  }
+}
+.reset {
+  color: var(--text-secondary);
+  font-size: 12px;
+}

@@ -2,7 +2,7 @@
  * 额度查询页：提供商 tabs + 统一卡网格。
  *
  * 保留的行为契约（重设计不改）：
- * - 现有提供商保持点击加载；Devin 首次可见时主动查询一次，不轮询；
+ * - 所有提供商自动查询，分批加载并保留会话隔离；
  * - cacheGeneration 会话隔离 + request-id 去重（见 useQuotaBatchLoader）；
  * - 文件列表变化后按 provider 剪枝额度缓存（已删文件不残留）；
  * - useHeaderRefresh 单槽位：本页唯一注册者，全局刷新 = 重取文件列表。
@@ -24,12 +24,18 @@ import type { AuthFileItem, ResolvedTheme } from '@/types';
 import { getQuotaCacheKey } from '@/utils/quota/identity';
 import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { QuotaHeader } from './components/QuotaHeader';
+import { QuotaRollupCard } from './components/QuotaRollupCard';
+import rollupStyles from './components/QuotaRollupCard.module.scss';
+import { buildProviderRollups } from './rollup';
+import { QuotaResults } from './components/QuotaLedger';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
 import {
   CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
   QUOTA_SORT_MODES,
+  QUOTA_VIEW_MODES,
+  type QuotaViewMode,
   QUOTA_TAB_ORDER,
   type QuotaSortMode,
   type QuotaTabId,
@@ -47,7 +53,7 @@ import {
 import { nextRecoveryMs } from './resetSchedule';
 import { QUOTA_ADAPTERS, getQuotaSetter, type QuotaCardState } from './providers';
 import type { QuotaProviderType } from './providers/types';
-import { useDevinQuotaAutoLoad } from './providers/devin/useDevinQuotaAutoLoad';
+import { useQuotaAutoLoadAll } from './useQuotaAutoLoadAll';
 import { useQuotaActions } from './hooks/useQuotaActions';
 import { useQuotaBatchLoader } from './hooks/useQuotaBatchLoader';
 import { readQuotaUiState, writeQuotaUiState } from './uiState';
@@ -73,6 +79,9 @@ export function QuotaPage() {
   const [tab, setTab] = useState<QuotaTabId>(() => readQuotaUiState()?.tab ?? 'all');
   const [sortMode, setSortMode] = useState<QuotaSortMode>(
     () => readQuotaUiState()?.sortMode ?? 'default'
+  );
+  const [viewMode, setViewMode] = useState<QuotaViewMode>(
+    () => readQuotaUiState()?.viewMode ?? 'ledger'
   );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -162,6 +171,7 @@ export function QuotaPage() {
   const sortNow = sortMode === 'default' ? 0 : tick;
 
   const entries = useMemo(() => classifyQuotaFiles(files), [files]);
+  const rollups = useMemo(() => buildProviderRollups(entries, quotaByType), [entries, quotaByType]);
   const tabCounts = useMemo(() => buildTabCounts(entries), [entries]);
   const filteredEntries = useMemo(
     () => filterEntriesBySearch(filterEntriesByTab(entries, tab), search),
@@ -242,10 +252,16 @@ export function QuotaPage() {
   const { batchLoading, loadQuota } = useQuotaBatchLoader();
   const { resettingQuotaName, refreshQuota, resetQuota } = useQuotaActions(disableControls);
 
+  const reloadAllQuota = useQuotaAutoLoadAll(
+    entries,
+    disableControls || loading || Boolean(error) || filesGeneration !== sessionGeneration,
+    loadQuota
+  );
+
   const pendingRefreshRef = useRef<number | null>(null);
   const prevLoadingRef = useRef(loading);
 
-  // 刷新全部：先重取文件列表，待其落定（loading 下降沿）再批量拉当前页额度
+  // 刷新全部：先重取文件列表，待其落定（loading 下降沿）再批量拉全部额度
   const handleRefreshAll = useCallback(() => {
     if (disableControls) return;
     pendingRefreshRef.current = sessionGeneration;
@@ -274,19 +290,17 @@ export function QuotaPage() {
         disableControls
       )
     ) {
-      void loadQuota(pageItems);
+      void reloadAllQuota(entries);
     }
-  }, [disableControls, error, filesGeneration, loading, loadQuota, pageItems, sessionGeneration]);
-
-  useDevinQuotaAutoLoad(
-    pageItems,
-    disableControls ||
-      loading ||
-      batchLoading ||
-      Boolean(error) ||
-      filesGeneration !== sessionGeneration,
-    loadQuota
-  );
+  }, [
+    disableControls,
+    error,
+    filesGeneration,
+    loading,
+    reloadAllQuota,
+    entries,
+    sessionGeneration,
+  ]);
 
   const canUseActions = !disableControls && !loading && filesGeneration === sessionGeneration;
 
@@ -323,6 +337,13 @@ export function QuotaPage() {
         onRefreshAll={handleRefreshAll}
       />
 
+      {!loading && (
+        <div className={rollupStyles.strip}>
+          {rollups.map((rollup) => (
+            <QuotaRollupCard key={rollup.type} rollup={rollup} />
+          ))}
+        </div>
+      )}
       <section className={styles.workbench}>
         {/* 提供商导航与搜索工具栏分层，避免不同控件争夺视觉焦点。 */}
         <div className={styles.tabsRow} data-reveal>
@@ -364,6 +385,21 @@ export function QuotaPage() {
           </div>
           <div className={styles.sort}>
             <Select
+              fullWidth={false}
+              value={viewMode}
+              options={QUOTA_VIEW_MODES.map((mode) => ({
+                value: mode,
+                label: t(`quota_management.view_${mode}`),
+              }))}
+              onChange={(next) => {
+                setViewMode(next as QuotaViewMode);
+                writeQuotaUiState({ viewMode: next as QuotaViewMode });
+              }}
+              ariaLabel={t('quota_management.view_label')}
+              size="sm"
+            />
+            <Select
+              fullWidth={false}
               value={sortMode}
               options={sortOptions}
               onChange={handleSortModeChange}
@@ -414,7 +450,14 @@ export function QuotaPage() {
             }
           />
         ) : (
-          <div className={styles.grid}>
+          <QuotaResults
+            viewMode={viewMode}
+            entries={pageItems}
+            quotaFor={getQuota}
+            cardsClassName={styles.grid}
+            canRefresh={canUseActions}
+            onRefresh={(entry) => void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
+          >
             {pageItems.map((entry, index) => (
               <QuotaCard
                 key={`${entry.type}:${getQuotaCacheKey(entry.file)}`}
@@ -428,7 +471,7 @@ export function QuotaPage() {
                 onReset={() => resetQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
               />
             ))}
-          </div>
+          </QuotaResults>
         )}
 
         {!loading && filteredEntries.length > QUOTA_PAGE_SIZE && (

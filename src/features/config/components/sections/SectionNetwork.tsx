@@ -140,6 +140,10 @@ export function SectionNetwork({
                     ),
                   },
                   {
+                    value: 'reset-soonest',
+                    label: t('config_management.visual.sections.network.strategy_reset_soonest'),
+                  },
+                  {
                     value: 'fill-first',
                     label: t('config_management.visual.sections.network.strategy_fill_first'),
                   },

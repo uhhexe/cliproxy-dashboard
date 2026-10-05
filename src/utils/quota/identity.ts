@@ -27,3 +27,18 @@ export function getQuotaCacheFileName(key: string): string {
   const separatorIndex = key.indexOf(QUOTA_IDENTITY_SEPARATOR);
   return separatorIndex === -1 ? key : key.slice(0, separatorIndex);
 }
+
+/** Presentation only: never use masked names as cache keys or API filenames. */
+export function maskCredentialName(name: string, showEmails = false): string {
+  if (showEmails) return name;
+  return name.replace(/([^\s@]+)@([^\s@]+)/g, (_match, local: string, host: string) => {
+    const prefix =
+      local.match(/^(?:claude|codex|antigravity|kimi|xai|devin|meta|gemini)-/i)?.[0] ?? '';
+    const first = local.slice(prefix.length, prefix.length + 1);
+    const extension = host.endsWith('.json') ? '.json' : '';
+    const domain = extension ? host.slice(0, -extension.length) : host;
+    const dot = domain.lastIndexOf('.');
+    const suffix = dot < 0 ? '' : domain.slice(dot);
+    return `${prefix}${first}•••@${domain.charAt(0)}•••${suffix}${extension}`;
+  });
+}

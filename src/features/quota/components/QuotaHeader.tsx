@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { IconRefreshCw } from '@/components/ui/icons';
 import { useCountUp } from '@/hooks/motion';
+import { useQuotaShowEmails, writeQuotaUiState } from '../uiState';
 import styles from './QuotaHeader.module.scss';
 
 export type QuotaHeaderProps = {
@@ -23,6 +24,7 @@ export function QuotaHeader(props: QuotaHeaderProps) {
   const { totalCount, loadedCount, attentionCount, refreshing, disableControls, onRefreshAll } =
     props;
   const { t } = useTranslation();
+  const showEmails = useQuotaShowEmails();
   // 批量结果陆续落地时，「已加载」是页面上唯一滚动的数字
   const displayLoadedCount = useCountUp(loadedCount);
 
@@ -55,6 +57,14 @@ export function QuotaHeader(props: QuotaHeaderProps) {
         </p>
       </div>
       <div className={styles.actions} data-reveal>
+        <button
+          type="button"
+          className={styles.primaryAction}
+          aria-pressed={showEmails}
+          onClick={() => writeQuotaUiState({ showEmails: !showEmails })}
+        >
+          {t('quota_management.show_emails')}
+        </button>
         <button
           type="button"
           className={styles.primaryAction}

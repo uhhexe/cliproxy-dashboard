@@ -78,3 +78,23 @@ describe('quota ui state', () => {
     expect(readQuotaUiState()).toBeNull();
   });
 });
+
+test('visibility and view preferences survive updates to the other controls', () => {
+  writeQuotaUiState({ showEmails: true, viewMode: 'cards' });
+  writeQuotaUiState({ tab: 'claude' });
+  expect(readQuotaUiState()?.showEmails).toBe(true);
+  expect(readQuotaUiState()?.viewMode).toBe('cards');
+});
+
+test('visibility remains usable when browser storage throws', () => {
+  Object.defineProperty(window, 'sessionStorage', {
+    get() {
+      throw new Error('Storage blocked');
+    },
+    configurable: true,
+  });
+  writeQuotaUiState({ showEmails: true });
+  expect(readQuotaUiState()?.showEmails).toBe(true);
+  writeQuotaUiState({ showEmails: false });
+  expect(readQuotaUiState()?.showEmails).toBe(false);
+});
