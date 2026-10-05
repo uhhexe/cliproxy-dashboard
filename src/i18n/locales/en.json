@@ -1539,6 +1539,10 @@
     }
   },
   "quota_management": {
+    "rollup_total": "{{remaining}} of {{capacity}}%",
+    "weekly_limit": "Weekly limit",
+    "lowest_group": "Lowest model group",
+    "show": "Show",
     "show_emails": "Show emails",
     "search_label": "Search accounts",
     "search_placeholder": "Search by filename or email",

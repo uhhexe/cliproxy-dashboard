@@ -1563,6 +1563,10 @@
     }
   },
   "quota_management": {
+    "rollup_total": "{{remaining}} / {{capacity}}%",
+    "weekly_limit": "每週限額",
+    "lowest_group": "最低模型群組",
+    "show": "顯示",
     "show_emails": "顯示電子郵件",
     "search_label": "搜尋帳號",
     "search_placeholder": "依檔案名稱或電子郵件搜尋",

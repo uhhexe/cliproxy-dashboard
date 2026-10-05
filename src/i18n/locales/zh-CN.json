@@ -1537,6 +1537,10 @@
     }
   },
   "quota_management": {
+    "rollup_total": "{{remaining}} / {{capacity}}%",
+    "weekly_limit": "每周限额",
+    "lowest_group": "最低模型组",
+    "show": "显示",
     "show_emails": "显示邮箱",
     "search_label": "搜索账号",
     "search_placeholder": "按文件名或邮箱搜索",

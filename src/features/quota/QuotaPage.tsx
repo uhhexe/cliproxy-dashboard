@@ -24,6 +24,9 @@ import type { AuthFileItem, ResolvedTheme } from '@/types';
 import { getQuotaCacheKey } from '@/utils/quota/identity';
 import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { QuotaHeader } from './components/QuotaHeader';
+import { QuotaRollupCard } from './components/QuotaRollupCard';
+import rollupStyles from './components/QuotaRollupCard.module.scss';
+import { buildProviderRollups } from './rollup';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
 import {
@@ -162,6 +165,7 @@ export function QuotaPage() {
   const sortNow = sortMode === 'default' ? 0 : tick;
 
   const entries = useMemo(() => classifyQuotaFiles(files), [files]);
+  const rollups = useMemo(() => buildProviderRollups(entries, quotaByType), [entries, quotaByType]);
   const tabCounts = useMemo(() => buildTabCounts(entries), [entries]);
   const filteredEntries = useMemo(
     () => filterEntriesBySearch(filterEntriesByTab(entries, tab), search),
@@ -327,6 +331,13 @@ export function QuotaPage() {
         onRefreshAll={handleRefreshAll}
       />
 
+      {!loading && (
+        <div className={rollupStyles.strip}>
+          {rollups.map((rollup) => (
+            <QuotaRollupCard key={rollup.type} rollup={rollup} />
+          ))}
+        </div>
+      )}
       <section className={styles.workbench}>
         {/* 提供商导航与搜索工具栏分层，避免不同控件争夺视觉焦点。 */}
         <div className={styles.tabsRow} data-reveal>
